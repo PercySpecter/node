@@ -71,11 +71,9 @@ app.put('/:dir/:id', bodyParser.json() , function (req, res) {
   var dir = req.params.dir;
   // console.log(dir)
   data = getData(id , dir);
-  // console.log(data)
-  data.userId = req.body.userId ? req.body.userId : data.userId;
-  data.title = req.body.title ? req.body.title : data.title;
-  console.log(req.body.completed);
-  data.completed = (typeof req.body.completed) ? req.body.completed : data.completed;
+  console.log(data);
+
+  Object.assign(data , req.body);
   // console.log(data)
   saveData(id , dir , data);
   console.log(data);
@@ -93,11 +91,14 @@ app.post('/:dir/', bodyParser.json() , function (req, res) {
   var id;
   fs.readdir(dir, (err, files) => {
     id = files.length + 1;
-    data = req.body;
+    data = {
+              "userId": 0,
+              "id": id,
+              "title": "",
+              "completed": false
+           }
+    Object.assign(data , req.body)
     data.id = id;
-    data.userId = req.body.userId ? req.body.userId : data.userId;
-    data.title = req.body.title ? req.body.title : data.title;
-    data.completed = (typeof req.body.completed) ? req.body.completed : data.completed;
     console.log(id);
     var fp = dir + "/" + dir.substr(0,4)+ "_" + id + '.json';
     console.log(fp);
