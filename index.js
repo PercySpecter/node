@@ -38,8 +38,6 @@ app.get('/:dir', function (req, res) {
   var dir = req.params.dir;
   try {
     fs.readdir(dir, function (err, files) {
-      if(!files)
-        throw "DirectoryNotFound";
       files.forEach(function (file) {
         fs.readFile(path.join(__dirname, dir, file), {encoding: 'utf8'}, (err, data) => {
           var todo = JSON.parse(data);
