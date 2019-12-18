@@ -1,6 +1,8 @@
-API Link:
+<h3>API Links:</h3>
 
-GET /todos
-GET /todos/[id]
-PUT /todos/[id]
-POST /todos
+<ul>
+  <li>GET <code>/todos</code></li>
+  <li>GET <code>/todos/[id]</code></li>
+  <li>PUT <code>/todos/[id]</code></li>
+  <li>POST <code>/todos</code></li>
+ </ul>
