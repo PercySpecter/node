@@ -74,9 +74,11 @@ app.put('/:dir/:id', bodyParser.json() , function (req, res) {
   // console.log(data)
   data.userId = req.body.userId ? req.body.userId : data.userId;
   data.title = req.body.title ? req.body.title : data.title;
-  data.completed = req.body.completed ? req.body.userId : data.completed;
+  console.log(req.body.completed);
+  data.completed = (typeof req.body.completed) ? req.body.completed : data.completed;
   // console.log(data)
   saveData(id , dir , data);
+  console.log(data);
   res.json(data);
   // res.end()
 })
@@ -95,7 +97,7 @@ app.post('/:dir/', bodyParser.json() , function (req, res) {
     data.id = id;
     data.userId = req.body.userId ? req.body.userId : data.userId;
     data.title = req.body.title ? req.body.title : data.title;
-    data.completed = req.body.completed ? req.body.userId : data.completed;
+    data.completed = (typeof req.body.completed) ? req.body.completed : data.completed;
     console.log(id);
     var fp = dir + "/" + dir.substr(0,4)+ "_" + id + '.json';
     console.log(fp);
