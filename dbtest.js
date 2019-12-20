@@ -18,18 +18,4 @@ var todoSchema = mongoose.Schema({
   completed: Boolean
 });
 
-// userSchema.virtual('name.full').get(function () {
-//   return _.startCase(this.name.first + ' ' + this.name.last);
-// });
-//
-// userSchema.virtual('name.full').set(function (value) {
-//   var bits = value.split(' ');
-//   this.name.first = bits[0];
-//   this.name.last = bits[1];
-// });
-
 exports.Todo = mongoose.model('Todo', todoSchema);
-
-// exports.Todo.find({} , (error , todos) => {
-//   console.log(todos);
-// });
