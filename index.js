@@ -51,7 +51,7 @@ app.get('/:dir/:id', function (req, res) {
 
   try {
     Todo.find({id: id} , (error , todos) => {
-      res.json(todos);
+      res.json(todos[0]);
     });
   }
   catch (e) {
@@ -65,6 +65,7 @@ app.put('/:dir/:id', bodyParser.json() , function (req, res) {
 
   try {
       Todo.find({id: id} , (error , todos) => {
+        console.log(todos);
       let todo = todos[0];
 
       Object.assign(todo , req.body);
