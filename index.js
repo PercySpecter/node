@@ -9,7 +9,9 @@ var engines = require('consolidate')
 var cors = require('cors')
 var bodyParser = require('body-parser')
 
-app.use(cors())
+const Todo = require('./dbtest').Todo;
+
+app.use(cors());
 
 var data;
 
@@ -34,19 +36,10 @@ app.set('views', './views')
 app.set('view engine', 'hbs')
 
 app.get('/:dir', function (req, res) {
-  var todos = [];
-  var dir = req.params.dir;
   try {
-    fs.readdir(dir, function (err, files) {
-      files.forEach(function (file) {
-        fs.readFile(path.join(__dirname, dir, file), {encoding: 'utf8'}, (err, data) => {
-          var todo = JSON.parse(data);
-          todos.push(todo);
-          if (todos.length === files.length)
-            res.json(todos);
-        })
-      })
-    })
+    Todo.find({} , (error , todos) => {
+      res.json(todos);
+    });
   }
   catch (e) {
     res.sendStatus(404);
@@ -55,10 +48,11 @@ app.get('/:dir', function (req, res) {
 
 app.get('/:dir/:id', function (req, res) {
   var id = req.params.id;
-  var dir = req.params.dir;
+
   try {
-    var data = getData(id , dir);
-    res.send(data);
+    Todo.find({id: id} , (error , todos) => {
+      res.json(todos);
+    });
   }
   catch (e) {
     res.sendStatus(404);
@@ -67,54 +61,51 @@ app.get('/:dir/:id', function (req, res) {
 
 app.put('/:dir/:id', bodyParser.json() , function (req, res) {
   var id = req.params.id;
-  // console.log(id)
   var dir = req.params.dir;
-  // console.log(dir)
-  data = getData(id , dir);
-  console.log(data);
 
-  Object.assign(data , req.body);
-  // console.log(data)
-  saveData(id , dir , data);
-  console.log(data);
-  res.json(data);
-  // res.end()
+  try {
+      Todo.find({id: id} , (error , todos) => {
+      let todo = todos[0];
+
+      Object.assign(todo , req.body);
+
+      Todo.findOneAndUpdate({id: id} , todo , () => {});
+
+      res.json(todo);
+    });
+  }
+  catch (e) {
+    console.log("hello error");
+    res.sendStatus(404);
+  }
 })
 
 app.post('/:dir/', bodyParser.json() , function (req, res) {
-  // var id = req.params.id;
-  // console.log(id)
+
   var dir = req.params.dir;
-  // console.log(dir)
-  // var data = getData(id , dir);
-  // console.log(data)
-  var id;
-  fs.readdir(dir, (err, files) => {
-    id = files.length + 1;
+
+  Todo.find({} , (error , todos) => {
+    let id = todos.reduce((max , curr) => {
+      max = curr.id > max ? curr.id : max;
+      return max;
+    } , todos[0].id);
+
     data = {
               "userId": 0,
               "id": id,
               "title": "",
               "completed": false
-           }
-    Object.assign(data , req.body)
-    data.id = id;
-    console.log(id);
-    var fp = dir + "/" + dir.substr(0,4)+ "_" + id + '.json';
-    console.log(fp);
-    fs.open(fp , "w" , () => {});
-    saveData(id , dir , data);
-    res.json(data);
-    // res.end()
-  });
-})
-
-app.delete('/:dir/:id', function (req, res) {
-  var fp = getDataFilePath(req.params.id , req.params.dir);
-  fs.unlinkSync(fp);
-  res.sendStatus(200);
+           };
+    Object.assign(data , req.body);
+    data.id = id + 1;
+    // console.log(data);
+    Todo.create(data , (error , new_todo) => {
+      console.log(new_todo);
+      res.json(new_todo);
+    })
+  })
 })
 
 var server = app.listen(3000, function () {
   console.log('Server running at http://localhost:' + server.address().port)
-})
+});
