@@ -8,8 +8,10 @@ var _ = require('lodash')
 var engines = require('consolidate')
 var cors = require('cors')
 var bodyParser = require('body-parser')
+const jwt = require('jsonwebtoken');
 
 const Todo = require('./dbtest').Todo;
+const User = require('./dbtest').User;
 
 app.use(cors());
 
@@ -18,9 +20,78 @@ app.use(cors());
 // app.set('views', './views')
 // app.set('view engine', 'hbs')
 
-app.get('/:dir', function (req, res) {
+
+function isAuthenticated(req, res, next) {
+    if (typeof req.headers.authorization !== "undefined") {
+        let token = req.headers.authorization.split(" ")[1];
+        let privateKey = "chaabi";
+        // console.log(token);
+        // Here we validate that the JSON Web Token is valid and has been
+        // created using the same private pass phrase
+        jwt.verify(token, privateKey, (err, user) => {
+
+            // if there has been an error...
+            if (err) {
+                // shut them out!
+                res.status(500).json({ error: "Not Authorized" });
+                // throw new Error("Not Authorized");
+            }
+            // if the JWT is valid, allow them to hit
+            // the intended endpoint
+            req.user = user;
+            next();
+        });
+    } else {
+        // No authorization header exists on the incoming
+        // request, return not authorized and throw a new error
+        res.status(500).json({ error: "Not Authorized" });
+        // throw new Error("Not Authorized");
+    }
+}
+
+app.get('/auth/:uid/:pass' , (req , res) => {
+  let uid = req.params.uid;
+  let pass = req.params.pass;
+  User.findOne({userId: uid} , (error , user) => {
+    console.log(user);
+    if(error || user == null)
+    {
+      res.sendStatus(403);
+    }
+    else if(pass === user.password)
+    {
+      let privateKey = 'chaabi';
+      let token = jwt.sign({ userId : uid }, privateKey);
+      res.json({token: token});
+    }
+    else
+    {
+      res.sendStatus(403);
+    }
+  })
+})
+
+// app.get('/jwt/:uid', function (req, res) {
+//   let uid = req.params.uid;
+//   let privateKey = 'chaabi';
+//   let token = jwt.sign({ userId : uid }, privateKey);
+//   res.json({token: token});
+// })
+
+app.get('/users', function (req, res) {
   try {
-    Todo.find({} , (error , todos) => {
+    User.find({} , (error , users) => {
+      res.json(users);
+    });
+  }
+  catch (e) {
+    res.sendStatus(404);
+  }
+})
+
+app.get('/todos', isAuthenticated, function (req, res) {
+  try {
+    Todo.find({userId: req.user.userId} , (error , todos) => {
       res.json(todos);
     });
   }
@@ -29,7 +100,7 @@ app.get('/:dir', function (req, res) {
   }
 })
 
-app.get('/:dir/:id', function (req, res) {
+app.get('/todos/:id', isAuthenticated, function (req, res) {
   var id = req.params.id;
 
   try {
@@ -42,9 +113,8 @@ app.get('/:dir/:id', function (req, res) {
   }
 })
 
-app.put('/:dir/:id', bodyParser.json() , function (req, res) {
+app.put('/todos/:id', [bodyParser.json(), isAuthenticated] , function (req, res) {
   var id = req.params.id;
-  var dir = req.params.dir;
 
   try {
       Todo.find({id: id} , (error , todos) => {
@@ -64,9 +134,7 @@ app.put('/:dir/:id', bodyParser.json() , function (req, res) {
   }
 })
 
-app.post('/:dir/', bodyParser.json() , function (req, res) {
-
-  var dir = req.params.dir;
+app.post('/todos/', bodyParser.json() , function (req, res) {
 
   Todo.find({} , (error , todos) => {
     let id = todos.reduce((max , curr) => {

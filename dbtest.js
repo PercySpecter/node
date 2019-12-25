@@ -18,4 +18,10 @@ var todoSchema = mongoose.Schema({
   completed: Boolean
 });
 
+var userSchema = mongoose.Schema ({
+  userId: Number,
+  password: String
+});
+
 exports.Todo = mongoose.model('Todo', todoSchema);
+exports.User = mongoose.model('User', userSchema);
