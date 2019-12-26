@@ -71,6 +71,26 @@ app.get('/auth/:uid/:pass' , (req , res) => {
   })
 })
 
+app.get('/new/:uid/:pass' , (req , res) => {
+  let uid = req.params.uid;
+  let pass = req.params.pass;
+  User.findOne({userId: uid} , (error , user) => {
+    console.log(user);
+    if(error || user == null)
+    {
+      let user = {userId: uid, password: pass};
+      User.create(user , (error , new_user) => {
+        console.log(new_user);
+        res.json({msg: '<span class="text-success">Sign Up completed successfully!</span>'});
+      })
+    }
+    else
+    {
+      res.json({msg: '<span class="text-danger">UserID already taken! Use a different UserID.</span>'});
+    }
+  })
+})
+
 // app.get('/jwt/:uid', function (req, res) {
 //   let uid = req.params.uid;
 //   let privateKey = 'chaabi';
@@ -81,7 +101,8 @@ app.get('/auth/:uid/:pass' , (req , res) => {
 app.get('/users', function (req, res) {
   try {
     User.find({} , (error , users) => {
-      res.json(users);
+      let uids = users.map((user) => user.userId);
+      res.json(uids);
     });
   }
   catch (e) {
