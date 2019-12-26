@@ -134,7 +134,7 @@ app.put('/todos/:id', [bodyParser.json(), isAuthenticated] , function (req, res)
   }
 })
 
-app.post('/todos/', bodyParser.json() , function (req, res) {
+app.post('/todos/', [bodyParser.json(), isAuthenticated] , function (req, res) {
 
   Todo.find({} , (error , todos) => {
     let id = todos.reduce((max , curr) => {
