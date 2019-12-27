@@ -9,6 +9,8 @@ var engines = require('consolidate')
 var cors = require('cors')
 var bodyParser = require('body-parser')
 const jwt = require('jsonwebtoken');
+const bcrypt = require('bcrypt');
+const saltRounds = 12;
 
 const Todo = require('./dbtest').Todo;
 const User = require('./dbtest').User;
@@ -58,15 +60,20 @@ app.get('/auth/:uid/:pass' , (req , res) => {
     {
       res.sendStatus(403);
     }
-    else if(pass === user.password)
-    {
-      let privateKey = 'chaabi';
-      let token = jwt.sign({ userId : uid }, privateKey);
-      res.json({token: token});
-    }
     else
     {
-      res.sendStatus(403);
+      bcrypt.compare(pass , user.password , (err , result) => {
+        if(result)
+        {
+          let privateKey = 'chaabi';
+          let token = jwt.sign({ userId : uid }, privateKey);
+          res.json({token: token});
+        }
+        else
+        {
+          res.sendStatus(403);
+        }
+      })
     }
   })
 })
@@ -76,12 +83,14 @@ app.get('/new/:uid/:pass' , (req , res) => {
   let pass = req.params.pass;
   User.findOne({userId: uid} , (error , user) => {
     console.log(user);
-    if(error || user == null)
+    if(user == null)
     {
-      let user = {userId: uid, password: pass};
-      User.create(user , (error , new_user) => {
-        console.log(new_user);
-        res.json({msg: '<span class="text-success">Sign Up completed successfully!</span>'});
+      bcrypt.hash(pass , saltRounds , (err , hash) => {
+        let user = {userId: uid, password: hash};
+        User.create(user , (error , new_user) => {
+          console.log(new_user);
+          res.json({msg: '<span class="text-success">Sign Up completed successfully!</span>'});
+        })
       })
     }
     else
