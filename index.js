@@ -27,28 +27,18 @@ app.use(cors());
 function isAuthenticated(req, res, next) {
     if (typeof req.headers.authorization !== "undefined") {
         let token = req.headers.authorization.split(" ")[1];
-        // let privateKey = "chaabi";
-        // console.log(token);
-        // Here we validate that the JSON Web Token is valid and has been
-        // created using the same private pass phrase
         jwt.verify(token, process.env.PRIVATE_KEY, (err, user) => {
-
-            // if there has been an error...
-            if (err) {
-                // shut them out!
+            if (err)
+            {
                 res.status(500).json({ error: "Not Authorized" });
-                // throw new Error("Not Authorized");
             }
-            // if the JWT is valid, allow them to hit
-            // the intended endpoint
             req.user = user;
             next();
         });
-    } else {
-        // No authorization header exists on the incoming
-        // request, return not authorized and throw a new error
+    }
+    else
+    {
         res.status(500).json({ error: "Not Authorized" });
-        // throw new Error("Not Authorized");
     }
 }
 
@@ -66,7 +56,6 @@ app.get('/auth/:uid/:pass' , (req , res) => {
       bcrypt.compare(pass , user.password , (err , result) => {
         if(result)
         {
-          // let privateKey = 'chaabi';
           let token = jwt.sign({ userId : uid }, process.env.PRIVATE_KEY);
           res.json({token: token});
         }
